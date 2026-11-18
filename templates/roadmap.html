@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}SkillSync — Learning Roadmap & Skill Priorities{% endblock %}
+{% block breadcrumb %}Learning Roadmap & Priorities{% endblock %}
+
+{% block content %}
+<div class="roadmap-page-container">
+  <!-- Top Navigation & Role Bar -->
+  <header class="roadmap-page-header">
+    <div class="header-main-info">
+      <div class="page-eyebrow">
+        <span class="eyebrow-spark">✦</span>
+        <span>CAREER ACCELERATION BLUEPRINT</span>
+      </div>
+      <h1 class="page-main-title">
+        Learning Roadmap & <span class="text-gradient">Skill Priorities</span>
+      </h1>
+      <p class="page-subtitle">
+        A step-by-step master plan turning your identified skill gaps into verified competencies. Track your progress with interactive checkboxes, explore curated documentation, and build portfolio-grade mini-projects.
+      </p>
+    </div>
+
+    <!-- Right Action Controls -->
+    <div class="header-action-panel">
+      <div class="role-selector-box">
+        <label for="roadmap-role-select" class="selector-label">Target Career Track:</label>
+        <div class="custom-select-wrapper">
+          <select id="roadmap-role-select" class="custom-select">
+            {% for role in roles %}
+              <option value="{{ role }}" {% if role == selected_role %}selected{% endif %}>{{ role }}</option>
+            {% endfor %}
+          </select>
+          <div class="select-arrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="quick-header-buttons">
+        <a href="{{ url_for('index') }}" class="btn-subtle" title="Return to Analyzer to upload another resume">
+          <span>← Back to Analyzer</span>
+        </a>
+        <button type="button" class="btn-subtle" id="copy-markdown-btn" title="Copy roadmap checklist as Markdown for Notion or Obsidian">
+          <span>📋 Copy Markdown</span>
+        </button>
+        <button type="button" class="btn-subtle" id="print-roadmap-btn" title="Print clean PDF version">
+          <span>🖨️ Print PDF</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Interactive Master Progress & Stats Banner -->
+  <section class="roadmap-overview-strip">
+    <!-- Active Role Card -->
+    <div class="overview-stat-card role-card">
+      <span class="stat-card-label">CURRENT ROLE TRACK</span>
+      <div class="stat-large-text" id="overview-role-name">{{ selected_role }}</div>
+      <div class="stat-subtext" id="overview-analysis-source">Showing personalized gap plan</div>
+    </div>
+
+    <!-- Match Score Card -->
+    <div class="overview-stat-card score-card">
+      <span class="stat-card-label">RESUME MATCH OVERLAP</span>
+      <div class="stat-score-row">
+        <span class="stat-score-num" id="overview-score-value">0%</span>
+        <span class="stat-badge" id="overview-score-badge">Initial</span>
+      </div>
+      <div class="stat-subtext" id="overview-score-subtext">Overlap based on detected skills</div>
+    </div>
+
+    <!-- Interactive Progress Tracker Card -->
+    <div class="overview-stat-card progress-card">
+      <div class="progress-card-top">
+        <span class="stat-card-label">ROADMAP EXECUTION PROGRESS</span>
+        <span class="progress-counter" id="progress-tasks-counter">0 of 0 Completed (0%)</span>
+      </div>
+      <div class="master-progress-track">
+        <div class="master-progress-fill" id="master-progress-fill" style="width: 0%"></div>
+      </div>
+      <div class="progress-card-bottom">
+        <span class="progress-hint">Check off tasks below as you complete them</span>
+        <button type="button" class="btn-text-tiny" id="reset-tasks-btn">Reset All</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section Tabs Switcher -->
+  <div class="section-tabs-bar">
+    <div class="tab-triggers">
+      <button type="button" class="view-tab-btn active" data-target="priorities-section" id="tab-priorities">
+        <span class="tab-icon">⚡</span>
+        <span>Skill Priorities</span>
+        <span class="tab-badge" id="priorities-count-badge">0</span>
+      </button>
+
+      <button type="button" class="view-tab-btn" data-target="roadmap-section" id="tab-roadmap">
+        <span class="tab-icon">🗺️</span>
+        <span>3-Stage Roadmap</span>
+        <span class="tab-badge" id="roadmap-stages-badge">3 Stages</span>
+      </button>
+
+      <button type="button" class="view-tab-btn" data-target="all-view" id="tab-all-view">
+        <span class="tab-icon">▤</span>
+        <span>Combined View</span>
+      </button>
+    </div>
+
+    <div class="tab-right-meta">
+      <span class="save-status"><span class="save-dot"></span> Progress auto-saved locally</span>
+    </div>
+  </div>
+
+  <!-- MAIN SECTION 1: SKILL PRIORITIES MATRIX -->
+  <section id="priorities-section" class="roadmap-content-section active-view">
+    <div class="section-heading-row">
+      <div>
+        <div class="section-eyebrow">PRIORITIZED GAPS</div>
+        <h2 class="section-title">Skill Priorities Matrix</h2>
+        <p class="section-description">
+          Ranked recommendations to address your missing competencies. Each skill includes an actionable mini-project and verified tutorial documentation.
+        </p>
+      </div>
+
+      <!-- Filters Toolbar -->
+      <div class="filters-toolbar">
+        <!-- Search Input -->
+        <div class="search-input-wrapper">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="skill-search-input" placeholder="Filter skills by name..." aria-label="Search skills">
+          <button type="button" class="clear-search-btn" id="clear-search-btn" hidden>&times;</button>
+        </div>
+
+        <!-- Priority Filter Pills -->
+        <div class="priority-filter-pills" id="priority-filter-group">
+          <button type="button" class="filter-pill active" data-filter="all">All Priorities</button>
+          <button type="button" class="filter-pill" data-filter="high">🔥 High</button>
+          <button type="button" class="filter-pill" data-filter="medium">⚡ Medium</button>
+          <button type="button" class="filter-pill" data-filter="explore">🌱 Explore</button>
+        </div>
+
+        <!-- Category Dropdown -->
+        <div class="category-select-wrapper">
+          <select id="category-filter-select" class="category-select" aria-label="Filter by skill category">
+            <option value="all">All Categories</option>
+            <!-- Injected dynamically -->
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommendations Grid -->
+    <div class="recommendations-container" id="recommendations-container">
+      <!-- Populated via JavaScript -->
+    </div>
+  </section>
+
+  <!-- MAIN SECTION 2: 3-STAGE LEARNING ROADMAP -->
+  <section id="roadmap-section" class="roadmap-content-section active-view">
+    <div class="section-heading-row">
+      <div>
+        <div class="section-eyebrow">MILESTONE TRACKER</div>
+        <h2 class="section-title">Your 3-Stage Milestone Roadmap</h2>
+        <p class="section-description">
+          A progression roadmap from core comprehension to hands-on building and interview validation. Click any task to check it off and record your progress.
+        </p>
+      </div>
+
+      <div class="stage-control-buttons">
+        <button type="button" class="btn-ghost-sm" id="check-all-roadmap">
+          <span>Check All Tasks</span>
+        </button>
+        <button type="button" class="btn-ghost-sm" id="uncheck-all-roadmap">
+          <span>Uncheck All</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3-Stage Cards Timeline -->
+    <div class="roadmap-timeline-grid" id="roadmap-timeline-grid">
+      <!-- Populated via JavaScript -->
+    </div>
+  </section>
+
+  <!-- Bottom Action Card -->
+  <div class="roadmap-footer-banner">
+    <div class="banner-icon">🎯</div>
+    <div class="banner-body">
+      <h3>Ready to validate your progress?</h3>
+      <p>Once you finish a stage or complete a mini-project, update your resume and run the analyzer again to see your score rise.</p>
+    </div>
+    <a href="{{ url_for('index') }}" class="btn-primary-glow">
+      <span>Return to Career Analyzer →</span>
+    </a>
+  </div>
+</div>
+
+<!-- Initial data for roadmap page fallback -->
+<script>
+  window.INITIAL_ROADMAP_DATA = {{ default_data|tojson }};
+  window.SELECTED_ROLE = {{ selected_role|tojson }};
+</script>
+{% endblock %}

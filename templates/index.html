@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+
+{% block title %}SkillSync — Career Readiness Analyzer{% endblock %}
+{% block breadcrumb %}Career Analyzer{% endblock %}
+
+{% block content %}
+<div class="analyzer-container">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="sparkle-icon">✦</span>
+        <span>AI-POWERED SKILL GAP DIAGNOSTICS</span>
+      </div>
+      <h1 class="hero-title">
+        Bridge the gap between your resume<br>
+        and your <span class="text-gradient">target role.</span>
+      </h1>
+      <p class="hero-subtitle">
+        Compare your technical profile against real-world job requirements. Get instant keyword overlap scoring, transparent gap detection, and a direct gateway to a personalized learning roadmap.
+      </p>
+
+      <div class="hero-feature-tags">
+        <span class="feature-tag"><span class="tag-icon">✓</span> 30+ Tech Competencies</span>
+        <span class="feature-tag"><span class="tag-icon">⚡</span> Instant Transparent Scoring</span>
+        <span class="feature-tag"><span class="tag-icon">📄</span> PDF & DOCX Upload Support</span>
+        <span class="feature-tag"><span class="tag-icon">🧪</span> Live Skill Acquisition Simulator</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Workspace Grid -->
+  <section class="workspace-grid" id="analyzer-workspace">
+    <!-- Input Panel (Left Column) -->
+    <div class="panel input-panel">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <span class="step-indicator">STEP 01</span>
+          <h2 class="panel-title">Set Your Profile & Target</h2>
+          <p class="panel-desc">Paste your resume or choose a candidate career phase to test.</p>
+        </div>
+        <div class="panel-header-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- Candidate Persona / Career Phase Selector Bar -->
+      <div class="persona-selector-card">
+        <div class="persona-header">
+          <span class="persona-title">TEST DIFFERENT CANDIDATE PHASES:</span>
+          <span class="persona-hint">Click a phase to test how its roadmap behaves</span>
+        </div>
+        <div class="persona-chips-grid" id="persona-chips-grid">
+          {% for p_key, p_data in personas.items() %}
+            <button type="button" class="persona-chip-btn" data-persona="{{ p_key }}" title="{{ p_data.description }}">
+              <span class="phase-tag">{{ p_data.phase }}</span>
+              <span class="phase-title">{{ p_data.title }}</span>
+            </button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <form id="analysis-form" class="analysis-form">
+        <!-- Target Role Selector -->
+        <div class="form-group">
+          <div class="field-label-row">
+            <label for="role" class="field-label">Target Role</label>
+            <span class="field-helper">Choose from curated presets</span>
+          </div>
+
+          <div class="custom-select-wrapper">
+            <select id="role" name="role" class="custom-select">
+              {% for role in roles %}
+                <option value="{{ role }}">{{ role }}</option>
+              {% endfor %}
+            </select>
+            <div class="select-arrow">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+
+          <!-- Quick Role Preset Chips -->
+          <div class="quick-role-chips" id="quick-role-chips">
+            <span class="quick-label">Presets:</span>
+            {% for role in roles %}
+              <button type="button" class="role-pill {% if loop.first %}active{% endif %}" data-role="{{ role }}">
+                {{ role }}
+              </button>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Resume Input Section -->
+        <div class="form-group">
+          <div class="field-label-row">
+            <label for="resume" class="field-label">
+              Resume Text <span class="required-mark">*</span>
+            </label>
+            <div class="label-actions">
+              <!-- File Upload Trigger Button -->
+              <label for="resume-file-input" class="upload-trigger-btn" title="Upload PDF, DOCX, or TXT resume file">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                <span>Upload File (.pdf/.docx/.txt)</span>
+              </label>
+              <input type="file" id="resume-file-input" accept=".txt,.md,.pdf,.docx,.rtf" class="hidden-file-input">
+
+              <span class="count-badge" id="resume-count">0 chars</span>
+            </div>
+          </div>
+
+          <!-- File Upload Status Indicator (Hidden by default) -->
+          <div id="file-upload-indicator" class="file-upload-indicator" hidden>
+            <span class="indicator-icon">📄</span>
+            <span class="indicator-filename" id="indicator-filename">resume.pdf</span>
+            <button type="button" class="indicator-remove-btn" id="indicator-remove-btn" title="Remove loaded file">&times;</button>
+          </div>
+
+          <div class="textarea-drop-zone" id="resume-drop-zone">
+            <textarea
+              id="resume"
+              name="resume"
+              class="form-textarea"
+              rows="7"
+              placeholder="Paste your resume summary, technical skills, projects, and work experience here... (or drag & drop a .pdf/.docx/.txt file)"
+            ></textarea>
+            <div class="drop-hint" id="drop-hint">
+              <span class="drop-icon">📥</span>
+              <span class="drop-text">Drop your PDF, DOCX, or TXT resume file here</span>
+            </div>
+          </div>
+          <div class="field-subtext">
+            <span class="info-icon">ℹ️</span> In-memory analysis. Zero database storage. Your resume text remains 100% private.
+          </div>
+        </div>
+
+        <!-- Job Description Input Section -->
+        <div class="form-group">
+          <div class="field-label-row">
+            <label for="job-description" class="field-label">
+              Job Description <span class="required-mark">*</span>
+            </label>
+            <div class="label-actions">
+              <button type="button" class="text-link-btn" id="load-sample">
+                Load Role Sample ↗
+              </button>
+              <span class="count-badge" id="job-count">0 chars</span>
+            </div>
+          </div>
+
+          <textarea
+            id="job-description"
+            name="job-description"
+            class="form-textarea"
+            rows="5"
+            placeholder="Paste target job description, requirements, or click 'Load Role Sample' above..."
+          ></textarea>
+        </div>
+
+        <!-- Form Error Box -->
+        <div id="form-error" class="form-error-alert" role="alert" hidden></div>
+
+        <!-- Form Actions -->
+        <div class="form-actions-bar">
+          <button type="submit" class="btn-primary-glow" id="analyze-btn">
+            <span class="btn-icon">✦</span>
+            <span class="btn-label">Run Career Match Analysis</span>
+            <span class="btn-arrow-right">→</span>
+          </button>
+
+          <button type="button" class="btn-secondary" id="clear-btn">
+            <span>Clear Inputs</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Insights / Guide Panel (Right Column) -->
+    <div class="panel guide-panel">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <span class="step-indicator">THE WORKFLOW</span>
+          <h2 class="panel-title">What SkillSync Delivers</h2>
+          <p class="panel-desc">A 3-step structured approach to career mobility.</p>
+        </div>
+      </div>
+
+      <div class="workflow-steps">
+        <div class="workflow-card">
+          <div class="step-badge emerald">01</div>
+          <div class="step-body">
+            <h3 class="step-title">Diagnostic Skill Overlap</h3>
+            <p class="step-text">Matches technical keywords against an extensive industry skill taxonomy to measure your baseline alignment.</p>
+          </div>
+        </div>
+
+        <div class="workflow-card">
+          <div class="step-badge amber">02</div>
+          <div class="step-body">
+            <h3 class="step-title">Prioritized Gap Classification</h3>
+            <p class="step-text">Separates missing skills into High, Medium, and Explore tiers so you know exactly which competency to tackle first.</p>
+          </div>
+        </div>
+
+        <div class="workflow-card">
+          <div class="step-badge indigo">03</div>
+          <div class="step-body">
+            <h3 class="step-title">Staged Execution Roadmap</h3>
+            <p class="step-text">Transforms identified gaps into concrete mini-projects and a 3-stage milestone tracker (Foundation ➔ Build ➔ Validate).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Launch Card to Dedicated Roadmap -->
+      <div class="roadmap-preview-card">
+        <div class="preview-card-header">
+          <span class="preview-star">★</span>
+          <span class="preview-tag">DEDICATED FEATURE</span>
+        </div>
+        <h3 class="preview-title">Learning Roadmap & Priorities Page</h3>
+        <p class="preview-desc">
+          Need a distraction-free master plan? Visit our dedicated webpage with interactive progress tracking, skill filters, and print-ready checklists.
+        </p>
+        <a href="{{ url_for('roadmap') }}" class="preview-action-btn">
+          <span>Go to Roadmap Page</span>
+          <span>↗</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Results Section (Dynamic) -->
+  <section id="results" class="results-container" hidden>
+    <!-- Simulation Notification Banner (Appears when user simulates learning skills) -->
+    <div id="simulation-banner" class="simulation-banner" hidden>
+      <div class="sim-left">
+        <span class="sim-icon">🧪</span>
+        <div>
+          <strong id="sim-title">Skill Acquisition Simulation Active</strong>
+          <p id="sim-desc">You simulated acquiring new skills. See how your overlap score and roadmap adjusted in real-time.</p>
+        </div>
+      </div>
+      <button type="button" class="btn-subtle" id="reset-sim-btn">Reset Simulation</button>
+    </div>
+
+    <div class="results-header-row">
+      <div class="results-header-text">
+        <div class="section-tag">
+          <span class="tag-dot"></span>
+          <span>ANALYSIS RESULTS</span>
+        </div>
+        <h2 class="results-title">Career Readiness Snapshot</h2>
+        <p class="results-subtitle" id="result-summary">Summary of your detected profile and target job.</p>
+      </div>
+
+      <div class="results-header-actions">
+        <a href="{{ url_for('roadmap') }}" class="btn-highlight-cta" id="go-to-roadmap-header-btn">
+          <span>View Dedicated Roadmap & Priorities</span>
+          <span class="arrow">→</span>
+        </a>
+        <button type="button" class="btn-outline-print" id="print-report">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          <span>Print Summary</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div class="metrics-dashboard-grid">
+      <!-- Radial Score Card -->
+      <article class="metric-card score-hero-card">
+        <div class="card-top-row">
+          <span class="metric-card-label">OVERALL MATCH</span>
+          <span class="metric-info-icon" title="Percentage of detected job requirements found in your resume">ⓘ</span>
+        </div>
+
+        <div class="radial-score-wrapper">
+          <svg class="radial-score-svg" viewBox="0 0 120 120">
+            <circle class="score-circle-bg" cx="60" cy="60" r="50"></circle>
+            <circle class="score-circle-bar" id="score-circle-bar" cx="60" cy="60" r="50"></circle>
+          </svg>
+          <div class="radial-score-content">
+            <span class="score-number" id="score-value">0%</span>
+            <span class="score-verdict" id="score-label">Calculating</span>
+          </div>
+        </div>
+
+        <div class="score-footer-note" id="score-note">
+          0 of 0 detected job skills matched
+        </div>
+      </article>
+
+      <!-- Matched Skills Card -->
+      <article class="metric-card matched-metric-card">
+        <div class="card-top-row">
+          <span class="metric-card-label">MATCHED SKILLS</span>
+          <span class="status-indicator-badge success">✓ Found</span>
+        </div>
+        <div class="metric-large-number text-emerald" id="matched-count">0</div>
+        <p class="metric-sublabel">Detected in both your resume & target role</p>
+        <div class="chips-container" id="matched-chips"></div>
+      </article>
+
+      <!-- Missing Skills Card (With Skill Simulation Buttons) -->
+      <article class="metric-card missing-metric-card">
+        <div class="card-top-row">
+          <span class="metric-card-label">SKILLS TO BUILD</span>
+          <span class="status-indicator-badge warning">⚡ Action Needed</span>
+        </div>
+        <div class="metric-large-number text-amber" id="missing-count">0</div>
+        <p class="metric-sublabel">Click '+ Test' to simulate learning a skill</p>
+        <div class="chips-container" id="missing-chips"></div>
+      </article>
+
+      <!-- Extra Skills Card -->
+      <article class="metric-card extra-metric-card">
+        <div class="card-top-row">
+          <span class="metric-card-label">BONUS SKILLS</span>
+          <span class="status-indicator-badge info">✦ Transferable</span>
+        </div>
+        <div class="metric-large-number text-indigo" id="additional-count">0</div>
+        <p class="metric-sublabel">Additional capabilities found in your resume</p>
+        <div class="chips-container" id="additional-chips"></div>
+      </article>
+    </div>
+
+    <!-- DEDICATED PROMINENT GATEWAY BANNER -->
+    <div class="roadmap-gateway-banner">
+      <div class="gateway-banner-body">
+        <div class="gateway-badge">
+          <span class="star">★</span> NEXT STEP: EXECUTION
+        </div>
+        <h3 class="gateway-title">
+          Ready to bridge these skill gaps?
+        </h3>
+        <p class="gateway-desc">
+          We've transformed your detected missing skills into a prioritized execution plan with curated tutorials, hands-on mini-projects, and an interactive 3-stage milestone tracker.
+        </p>
+        <div class="gateway-preview-skills" id="gateway-preview-skills">
+          <!-- Populated via JS with top priority skills -->
+        </div>
+      </div>
+
+      <div class="gateway-banner-action">
+        <a href="{{ url_for('roadmap') }}" class="btn-gateway-launch" id="btn-gateway-launch">
+          <span class="glow-span"></span>
+          <span class="btn-content">
+            <span>Explore Full Roadmap & Priorities</span>
+            <span class="arrow-icon">→</span>
+          </span>
+        </a>
+        <span class="gateway-sub-note">Includes interactive checkboxes, filters, and printable PDF</span>
+      </div>
+    </div>
+
+    <!-- Quick Preview Grid of Priorities (Below Banner) -->
+    <div class="analyzer-preview-section">
+      <div class="preview-section-header">
+        <div>
+          <h3 class="preview-section-title">Top Skill Priorities Preview</h3>
+          <p class="preview-section-subtitle">Highest-impact gaps to focus on first.</p>
+        </div>
+        <a href="{{ url_for('roadmap') }}" class="text-link-all">
+          View all on Roadmap Page →
+        </a>
+      </div>
+
+      <div class="quick-priorities-grid" id="quick-priorities-grid">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- Transparency Disclaimer -->
+    <div class="transparency-note-box">
+      <div class="note-icon-col">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+      </div>
+      <div class="note-text-col">
+        <strong>Transparency & Algorithm Note</strong>
+        <p id="disclaimer">
+          Score represents keyword overlap percentage between detected skills. It measures semantic keyword presence, not overall candidate talent or absolute hiring probability.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Injected Personas for Quick Switching in JavaScript -->
+<script>
+  window.SKILLSYNC_PERSONAS = {{ personas|tojson }};
+</script>
+{% endblock %}
