@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🚀 SkillSync Career Coach
 ### AI-Powered Career Readiness & Skill Gap Analysis Platform
 
@@ -311,3 +312,6 @@ This project is developed for educational and portfolio purposes.
   <b>SkillSync Career Coach</b><br>
   Build Skills. Bridge Gaps. Become Career Ready. 🚀
 </p>
+=======
+# Skillsync_Coach
+>>>>>>> 341809abfb9689177cedef868769dad8e5d255ab
